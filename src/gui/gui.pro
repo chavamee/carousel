@@ -19,6 +19,8 @@ LIBS += -L../app -lapp
 
 TEMPLATE = app
 
+CONFIG += c++14
+
 HEADERS += Carousel.hpp \
   MainWindow.hpp \
   FilePreview.hpp \

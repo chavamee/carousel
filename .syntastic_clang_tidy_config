@@ -1,0 +1,12 @@
+-std=c++14
+-D_REENTRANT
+-DQT_NO_DEBUG
+-DQT_WIDGETS_LIB
+-DQT_GUI_LIB
+-DQT_CORE_LIB
+-I.
+-I/usr/include/qt
+-I/usr/include/qt/QtWidgets
+-I/usr/include/qt/QtGui
+-I/usr/include/qt/QtCore
+-I/usr/include/libdrm

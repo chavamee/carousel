@@ -15,7 +15,7 @@
 
 TEMPLATE = lib
 
-CONFIG += staticlib
+CONFIG += staticlib c++14
 
 HEADERS += Directory.hpp \
   CommandStack.hpp \
