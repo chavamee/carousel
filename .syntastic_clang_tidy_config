@@ -4,7 +4,7 @@
 -DQT_WIDGETS_LIB
 -DQT_GUI_LIB
 -DQT_CORE_LIB
--I.
+-Isrc
 -I/usr/include/qt
 -I/usr/include/qt/QtWidgets
 -I/usr/include/qt/QtGui
