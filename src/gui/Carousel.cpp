@@ -20,8 +20,10 @@
 #include <QMessageBox>
 
 #include <memory>
+#include <string>
 
 #include "../app/command/CopyFile.hpp"
+#include "../app/command/FileCommand.hpp"
 #include "../app/command/HardRemoveFile.hpp"
 #include "../app/command/MoveFile.hpp"
 #include "../app/command/RenameFile.hpp"
@@ -29,7 +31,9 @@
 #include "Carousel.hpp"
 #include "Previewers.hpp"
 
-using namespace std;
+using std::unique_ptr;
+using std::make_unique;
+using std::make_tuple;
 
 Carousel::Carousel(QWidget* parent, QSharedPointer<Directory> directory)
     : QWidget(parent), m_directory(directory) {
@@ -41,37 +45,37 @@ Carousel::Carousel(QWidget* parent, QSharedPointer<Directory> directory)
 void Carousel::createGrid() {
   m_grid = new QGridLayout;
 
-  QPushButton* northButton = new QPushButton;
+  auto northButton = new QPushButton;
   northButton->setFocusPolicy(Qt::NoFocus);
   connect(northButton, SIGNAL(clicked()), this, SLOT(northButtonPushed()));
   m_grid->addWidget(northButton, 0, 1, 1, 1, Qt::AlignCenter);
   m_directories[Direction::North] = make_tuple("", northButton);
 
-  QPushButton* southButton = new QPushButton;
+  auto southButton = new QPushButton;
   southButton->setFocusPolicy(Qt::NoFocus);
   connect(southButton, SIGNAL(clicked()), this, SLOT(southButtonPushed()));
   m_grid->addWidget(southButton, 2, 1, 1, 1, Qt::AlignCenter);
   m_directories[Direction::South] = make_tuple("", southButton);
 
-  QPushButton* eastButton = new QPushButton;
+  auto eastButton = new QPushButton;
   eastButton->setFocusPolicy(Qt::NoFocus);
   connect(eastButton, SIGNAL(clicked()), this, SLOT(eastButtonPushed()));
   m_grid->addWidget(eastButton, 1, 2, 1, 1, Qt::AlignCenter);
   m_directories[Direction::East] = make_tuple("", eastButton);
 
-  QPushButton* westButton = new QPushButton;
+  auto westButton = new QPushButton;
   westButton->setFocusPolicy(Qt::NoFocus);
   connect(westButton, SIGNAL(clicked()), this, SLOT(westButtonPushed()));
   m_grid->addWidget(westButton, 1, 0, 1, 1, Qt::AlignCenter);
   m_directories[Direction::West] = make_tuple("", westButton);
 
-  QVBoxLayout* vlayout = new QVBoxLayout;
+  auto vlayout = new QVBoxLayout;
   m_filePreview = Previewers::GetPreviewForFile(this, m_directory->Current());
   m_filePreview->setGeometry(QRect(x(), y(), width() * 0.5, height() * 0.5));
   vlayout->addWidget(m_filePreview);
   m_filePreview->Show(m_directory->Current());
 
-  QHBoxLayout* hlayout = new QHBoxLayout;
+  auto hlayout = new QHBoxLayout;
   m_nameEdit = new QLineEdit;
   m_nameEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   m_nameEdit->setFocusPolicy(Qt::ClickFocus);
@@ -106,41 +110,49 @@ void Carousel::confirmNameEditPushed() {
     return;
   }
 
+  auto currentFile = m_directory->Current();
   try {
     unique_ptr<RenameFile> command =
-        make_unique<RenameFile>(m_directory->Current(), m_nameEdit->text());
+        make_unique<RenameFile>(currentFile, m_nameEdit->text());
     command->Exec();
-    if (command->Modifies()) {
-      workingDirectoryModified();
-    }
+    workingDirectoryModified();
 
     if (command->IsReversible()) {
-      m_commandStack.Add(std::move(command));
+      m_commandStack.Add(std::move(command), currentFile);
     }
   } catch (std::exception& e) {
   }
 }
 
 void Carousel::undo() {
-  FileCommand& command = static_cast<FileCommand&>(m_commandStack.Undo());
+  Command* command = nullptr;
+  QFileInfo file;
+  std::tie(command, file) = m_commandStack.Undo();
   try {
-    if (command.IsReversible()) {
-      command.Undo();
-    }
-
-    if (command.Modifies()) {
-      QFileInfo restored_file = command.File();
-      workingDirectoryModified(&restored_file);
+    if (command->IsReversible()) {
+      command->Undo();
     }
   } catch (std::exception& e) {
+  }
+
+  if (typeid(command) != typeid(FileCommand<CopyFile>)) {
+    workingDirectoryModified(&file);
+  } else {
+    workingDirectoryModified();
   }
 }
 
 void Carousel::redo() {
-  FileCommand& command = static_cast<FileCommand&>(m_commandStack.Redo());
+  Command* command = nullptr;
+  QFileInfo file;
+  std::tie(command, file) = m_commandStack.Redo();
   try {
-    command.Exec();
+    command->Exec();
   } catch (std::exception& e) {
+  }
+
+  if (typeid(*command) != typeid(FileCommand<CopyFile>)) {
+    workingDirectoryModified();
   }
 }
 
@@ -233,32 +245,35 @@ void Carousel::processDirectionalCommandKey(Direction direction,
     return;
   }
 
-  unique_ptr<FileCommand> command;
+  auto currentFile = m_directory->Current();
+  unique_ptr<Command> command;
   if (event->text().at(0).isUpper()) {
-    command = make_unique<CopyFile>(m_directory->Current(), path);
+    command = make_unique<FileCommand<CopyFile>>(currentFile, path);
   } else if (event->text().at(0).isLower()) {
-    command = make_unique<MoveFile>(m_directory->Current(), path);
+    command = make_unique<FileCommand<MoveFile>>(currentFile, path);
   }
 
   if (command != nullptr) {
     try {
       command->Exec();
-      if (command->Modifies()) {
+      if (typeid(*command) != typeid(FileCommand<CopyFile>)) {
         workingDirectoryModified();
       }
+
     } catch (std::exception& e) {
     }
 
     if (command->IsReversible()) {
-      m_commandStack.Add(std::move(command));
+      m_commandStack.Add(std::move(command), currentFile);
     }
   }
 }
 
 void Carousel::processRemoveKey(QKeyEvent* event) {
-  unique_ptr<FileCommand> command;
+  auto currentFile = m_directory->Current();
+  unique_ptr<Command> command;
   if (event->text().at(0).isLower()) {
-    command = make_unique<SoftRemoveFile>(m_directory->Current());
+    command = make_unique<FileCommand<SoftRemoveFile>>(currentFile);
   } else if (event->text().at(0).isUpper()) {
     QMessageBox msgBox;
     msgBox.setText("This action is permanent.");
@@ -266,7 +281,7 @@ void Carousel::processRemoveKey(QKeyEvent* event) {
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::No);
     if (msgBox.exec() == QMessageBox::Yes) {
-      command = make_unique<HardRemoveFile>(m_directory->Current());
+      command = make_unique<FileCommand<HardRemoveFile>>(currentFile);
     } else {
       return;
     }
@@ -275,14 +290,12 @@ void Carousel::processRemoveKey(QKeyEvent* event) {
   if (command != nullptr) {
     try {
       command->Exec();
-      if (command->Modifies()) {
-        workingDirectoryModified();
-      }
+      workingDirectoryModified();
     } catch (std::exception& e) {
     }
 
     if (command->IsReversible()) {
-      m_commandStack.Add(std::move(command));
+      m_commandStack.Add(std::move(command), currentFile);
     }
   }
 }

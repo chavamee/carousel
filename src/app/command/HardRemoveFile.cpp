@@ -15,7 +15,7 @@
 
 #include "HardRemoveFile.hpp"
 
-HardRemoveFile::HardRemoveFile(QFileInfo file) : m_file(file) {}
+HardRemoveFile::HardRemoveFile(const QFileInfo& file) : m_file(file) {}
 
 void HardRemoveFile::Exec() {
   if (not m_file.exists()) {

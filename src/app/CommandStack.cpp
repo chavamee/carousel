@@ -15,35 +15,45 @@
 
 #include "CommandStack.hpp"
 
-using namespace std;
+using std::unique_ptr;
+using std::make_tuple;
 
-CommandStack::CommandStack() {}
-
-void CommandStack::Add(unique_ptr<Command> command) {
+void CommandStack::Add(unique_ptr<Command> command, const QFileInfo& file) {
+  // If we are not at the end of the stack and we add a command
+  // remove all commands past the newly added one.
   if (std::begin(m_stack) + m_index != std::end(m_stack)) {
     Trim();
   }
-  m_stack.insert(std::begin(m_stack) + m_index, std::move(command));
+  m_stack.insert(std::begin(m_stack) + m_index,
+                 make_tuple(std::move(command), file));
   m_index += 1;
 }
 
-Command& CommandStack::Current() { return *m_stack.at(m_index); }
+std::tuple<Command*, QFileInfo> CommandStack::Current() {
+  auto& atIndex = m_stack.at(m_index);
+  return make_tuple(std::get<0>(atIndex).get(), std::get<1>(atIndex));
+}
 
-Command& CommandStack::Redo() {
+std::tuple<Command*, QFileInfo> CommandStack::Redo() {
   if (m_index < m_stack.size() - 1) {
     m_index += 1;
   }
-  return *m_stack.at(m_index);
+  auto& atIndex = m_stack.at(m_index);
+  return make_tuple(std::get<0>(atIndex).get(), std::get<1>(atIndex));
 }
 
-Command& CommandStack::Undo() {
+std::tuple<Command*, QFileInfo> CommandStack::Undo() {
   if (m_index > 0) {
     m_index -= 1;
   }
-  return *m_stack.at(m_index);
+  auto& atIndex = m_stack.at(m_index);
+  return make_tuple(std::get<0>(atIndex).get(), std::get<1>(atIndex));
 }
 
-Command& CommandStack::Get(size_type pos) { return *m_stack.at(pos); }
+std::tuple<Command*, QFileInfo> CommandStack::Get(size_type pos) {
+  auto& atIndex = m_stack.at(pos);
+  return make_tuple(std::get<0>(atIndex).get(), std::get<1>(atIndex));
+}
 
 void CommandStack::Trim() {
   if (m_stack.empty()) {

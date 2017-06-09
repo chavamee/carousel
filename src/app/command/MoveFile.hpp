@@ -22,12 +22,12 @@
 
 #include <QFileInfo>
 
-#include "FileCommand.hpp"
+#include "Command.hpp"
 
 /**
  * Responsible for file system remove commands.
  */
-class MoveFile : public FileCommand {
+class MoveFile : public Command {
  public:
   /**
    * Constructor
@@ -35,7 +35,7 @@ class MoveFile : public FileCommand {
    * @param file file to move
    * @param to   path to move the file to
    */
-  MoveFile(QFileInfo file, QString to);
+  MoveFile(const QFileInfo& file, QString to);
 
   /**
    * Execute command and move file.
@@ -54,21 +54,6 @@ class MoveFile : public FileCommand {
    *         false otherwise
    */
   bool IsReversible() override;
-
-  /**
-   * Check if the command modifies the file directly.
-   *
-   * @return true if the command modifies it's file,
-   *         false otherwise.
-   */
-  inline bool Modifies() override { return true; }
-
-  /**
-   * Return the command's file.
-   *
-   * @return the command file
-   */
-  inline QFileInfo File() { return m_file; }
 
  private:
   QFileInfo m_file;

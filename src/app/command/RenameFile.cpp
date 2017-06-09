@@ -15,8 +15,10 @@
 
 #include "RenameFile.hpp"
 
-RenameFile::RenameFile(QFileInfo info, QString newName)
-    : m_file(info), m_originalName(info.fileName()), m_newName(newName) {}
+RenameFile::RenameFile(const QFileInfo& file, QString newName)
+    : m_file(file),
+      m_originalName(file.fileName()),
+      m_newName(std::move(newName)) {}
 
 void RenameFile::Exec() {
   if (not m_file.exists()) {
