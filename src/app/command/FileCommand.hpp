@@ -23,46 +23,41 @@
 
 #include <QFileInfo>
 
+#include <utility>
+
 #include "Command.hpp"
 
 /**
  * Provides an interface for filesystem specific
  * command execution and undo-ability.
  */
+template <class T>
 class FileCommand : public Command {
  public:
+  template <typename... Args>
+  FileCommand(QFileInfo file, Args&&... args)
+      : m_command(file, std::forward<Args>(args)...) {}
+
   /**
    * Execute a command
    */
-  virtual void Exec() = 0;
+  void Exec() override { m_command.Exec(); }
 
   /**
    * Undo command
    */
-  virtual void Undo() = 0;
+  void Undo() override { m_command.Undo(); }
 
   /**
    * Check if the command is reversible.
    *
-   * @return true if the command ca be undone,
+   * @return true if the command can be undone,
    *         false otherwise
    */
-  virtual bool IsReversible() = 0;
+  bool IsReversible() override { return m_command.IsReversible(); }
 
-  /**
-   * Check if the command modifies a file directly
-   *
-   * @return true if the command modifies a file,
-   *         false otherwise
-   */
-  virtual bool Modifies() = 0;
-
-  /**
-   * Get the file the command works on.
-   *
-   * @return the file information from the command
-   */
-  virtual QFileInfo File() { return QFileInfo(); };
+ private:
+  T m_command;
 };
 
 #endif  // CAROUSEL_APP_COMMAND_FILECOMMAND_H

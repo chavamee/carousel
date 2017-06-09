@@ -22,9 +22,9 @@
 
 #include <QFileInfo>
 
-#include "FileCommand.hpp"
+#include "Command.hpp"
 
-class RenameFile : public FileCommand {
+class RenameFile : public Command {
  public:
   /**
    * Constructor
@@ -32,7 +32,7 @@ class RenameFile : public FileCommand {
    * @param file the file to rename
    * @param newName new name to rename the file to
    */
-  RenameFile(QFileInfo file, QString newName);
+  RenameFile(const QFileInfo& file, QString newName);
 
   /**
    * Execute command and rename file.
@@ -48,20 +48,6 @@ class RenameFile : public FileCommand {
    * Check if the command is reversible.
    */
   inline bool IsReversible() override { return m_file.exists(); }
-
-  /**
-   * Check if the command modifies the file directly.
-   *
-   * @return this always returns true
-   */
-  inline bool Modifies() override { return true; }
-
-  /**
-   * Get the command's file.
-   *
-   * @return the command's file
-   */
-  inline QFileInfo File() { return m_file; }
 
  private:
   QFileInfo m_file;

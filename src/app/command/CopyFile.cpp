@@ -17,8 +17,10 @@
 
 #include "CopyFile.hpp"
 
-CopyFile::CopyFile(QFileInfo file, QString to)
-    : m_file(file), m_origin(file.absolutePath()), m_destination(to) {}
+CopyFile::CopyFile(const QFileInfo& file, QString to)
+    : m_file(file),
+      m_origin(file.absolutePath()),
+      m_destination(std::move(to)) {}
 
 void CopyFile::Exec() {
   if (not m_file.exists()) {
@@ -52,8 +54,5 @@ void CopyFile::Undo() {
 
 bool CopyFile::IsReversible() {
   QString full_destination_path = m_destination + "/" + m_file.fileName();
-  if (not QFile::exists(full_destination_path)) {
-    return false;
-  }
-  return true;
+  return QFile::exists(full_destination_path);
 }

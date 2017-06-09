@@ -30,14 +30,14 @@
  * This command does not remove a file permanently but
  * rather moves it to the system's trash directory.
  */
-class SoftRemoveFile : public FileCommand {
+class SoftRemoveFile : public Command {
  public:
   /**
    * Constructor
    *
    * @param file the file to remove
    */
-  SoftRemoveFile(QFileInfo file);
+  SoftRemoveFile(const QFileInfo& file);
 
   /**
    * Execute command and remove file.
@@ -56,20 +56,6 @@ class SoftRemoveFile : public FileCommand {
    *         false otherwise
    */
   bool IsReversible() override;
-
-  /**
-   * Check if the command modifies it's file.
-   *
-   * @return this always returns true
-   */
-  inline bool Modifies() { return true; }
-
-  /**
-   * Get the command's file.
-   *
-   * @return the command's file.
-   */
-  inline QFileInfo File() { return m_moveCommand->File(); }
 
  private:
   std::unique_ptr<MoveFile> m_moveCommand;

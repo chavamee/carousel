@@ -1,6 +1,7 @@
 /**
  * @file
- * Contains CommandStack class responsible for command management and retrieval.
+ * Contains CommandStack class responsible for filesystem command management
+ * and retrieval.
  */
 /*
  * Carousel
@@ -20,7 +21,10 @@
 #ifndef CAROUSEL_APP_COMMANDSTACK_H
 #define CAROUSEL_APP_COMMANDSTACK_H
 
+#include <QFileInfo>
+
 #include <memory>
+#include <tuple>
 #include <vector>
 
 #include "command/Command.hpp"
@@ -35,23 +39,18 @@ class CommandStack {
   using size_type = std::size_t;
 
   /**
-   * Constructor
-   */
-  CommandStack();
-
-  /**
    * Add a command to the stack.
    *
    * @param command The command to add. The stack takes ownership.
    */
-  void Add(std::unique_ptr<Command> command);
+  void Add(std::unique_ptr<Command> command, const QFileInfo& file);
 
   /**
    * Get command reference that the stack index currently points to.
    *
    * @return command at stack index
    */
-  Command& Current();
+  std::tuple<Command*, QFileInfo> Current();
 
   /**
    * Move the stack index forward and return the object pointed by
@@ -59,7 +58,7 @@ class CommandStack {
    *
    * @return command object at stack index
    */
-  Command& Redo();
+  std::tuple<Command*, QFileInfo> Redo();
 
   /**
    * Move the stack index backward and return the object pointed by
@@ -67,7 +66,7 @@ class CommandStack {
    *
    * @return command at stack index
    */
-  Command& Undo();
+  std::tuple<Command*, QFileInfo> Undo();
 
   /**
    * Get command at a position in the stack.
@@ -79,7 +78,7 @@ class CommandStack {
    *
    * @return command object at pos
    */
-  Command& Get(size_type pos);
+  std::tuple<Command*, QFileInfo> Get(size_type pos);
 
   /**
    * Erase objects past current stack index.
@@ -87,7 +86,7 @@ class CommandStack {
   void Trim();
 
  private:
-  std::vector<std::unique_ptr<Command>> m_stack;
+  std::vector<std::tuple<std::unique_ptr<Command>, QFileInfo>> m_stack;
   size_type m_index = 0;
 };
 

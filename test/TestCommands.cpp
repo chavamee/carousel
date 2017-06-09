@@ -82,8 +82,6 @@ void TestCommands::TestMoveCommand() {
   m_testDir.refresh();
   QVERIFY(moveDir.exists(m_testFileName) == false);
   QVERIFY(m_testDir.exists(m_testFileName) == true);
-
-  QVERIFY(command.Modifies() == true);
 }
 
 void TestCommands::TestCopyCommand() {
@@ -105,8 +103,6 @@ void TestCommands::TestCopyCommand() {
   command.Undo();
   copyDir.refresh();
   QVERIFY(copyDir.exists(m_testFileName) == false);
-
-  QVERIFY(command.Modifies() == false);
 }
 
 void TestCommands::TestRenameCommand() {
@@ -124,8 +120,6 @@ void TestCommands::TestRenameCommand() {
   m_testDir.refresh();
   QVERIFY(m_testDir.exists(m_testFileName) == true);
   QVERIFY(m_testDir.exists(newName) == false);
-
-  QVERIFY(command.Modifies() == true);
 }
 
 void TestCommands::TestSoftRemoveCommand() {
@@ -145,8 +139,6 @@ void TestCommands::TestSoftRemoveCommand() {
   trashDir.refresh();
   QVERIFY(m_testDir.exists(m_testFileName) == true);
   QVERIFY(trashDir.exists(m_testFileName) == false);
-
-  QVERIFY(command.Modifies() == true);
 }
 
 void TestCommands::TestHardRemoveCommand() {
@@ -161,8 +153,6 @@ void TestCommands::TestHardRemoveCommand() {
   command.Undo();
   m_testDir.refresh();
   QVERIFY(m_testDir.exists(m_testFileName) == false);
-
-  QVERIFY(command.Modifies() == true);
 }
 
 QTEST_MAIN(TestCommands)

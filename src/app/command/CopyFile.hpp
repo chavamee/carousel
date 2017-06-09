@@ -22,12 +22,12 @@
 
 #include <QFileInfo>
 
-#include "FileCommand.hpp"
+#include "Command.hpp"
 
 /**
  * Responsible for file system copy commands.
  */
-class CopyFile : public FileCommand {
+class CopyFile : public Command {
  public:
   /**
    * Constructor
@@ -35,7 +35,7 @@ class CopyFile : public FileCommand {
    * @param file the file to copy
    * @param to   path to copy the file to
    */
-  CopyFile(QFileInfo file, QString to);
+  CopyFile(const QFileInfo& file, QString to);
 
   /**
    * Execute command and copy file.
@@ -55,13 +55,6 @@ class CopyFile : public FileCommand {
    * Check if the command can be reversed.
    */
   bool IsReversible() override;
-
-  /**
-   * Check if the command modifies the original file.
-   *
-   * @return CopyFile will always return false.
-   */
-  inline bool Modifies() override { return false; }
 
  private:
   QFileInfo m_file;

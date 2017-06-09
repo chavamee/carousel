@@ -20,27 +20,32 @@
 #ifndef CAROUSEL_APP_COMMAND_HARDREMOVEFILE_H
 #define CAROUSEL_APP_COMMAND_HARDREMOVEFILE_H
 
-#include "FileCommand.hpp"
+#include <QFileInfo>
+
+#include "Command.hpp"
 
 /**
  * Responsible for file system remove commands.
  *
  * This command is inherently irreversible.
  */
-class HardRemoveFile : public FileCommand {
+class HardRemoveFile : public Command {
  public:
   /**
    * Constructor
    *
    * @param file the file to remove
    */
-  HardRemoveFile(QFileInfo file);
+  HardRemoveFile(const QFileInfo& file);
 
   /**
    * Execute the command and remove file
    */
   void Exec() override;
 
+  /**
+   * Since HardRemoveFile is a permanent operation this is left empty.
+   */
   void Undo() override {}
 
   /**
@@ -49,13 +54,6 @@ class HardRemoveFile : public FileCommand {
    * @return this will always return false.
    */
   bool IsReversible() override { return false; }
-
-  /**
-   * Check if the command modifies the working file.
-   *
-   * @return this will always return true
-   */
-  bool Modifies() override { return true; }
 
  private:
   QFileInfo m_file;

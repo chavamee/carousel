@@ -17,8 +17,10 @@
 
 #include "MoveFile.hpp"
 
-MoveFile::MoveFile(QFileInfo file, QString to)
-    : m_file(file), m_origin(file.absolutePath()), m_destination(to) {}
+MoveFile::MoveFile(const QFileInfo& file, QString to)
+    : m_file(file),
+      m_origin(file.absolutePath()),
+      m_destination(std::move(to)) {}
 
 void MoveFile::Exec() {
   if (not m_file.exists()) {
@@ -59,8 +61,5 @@ void MoveFile::Undo() {
 
 bool MoveFile::IsReversible() {
   QString full_destination_path = m_destination + "/" + m_file.fileName();
-  if (not QFile::exists(full_destination_path)) {
-    return false;
-  }
-  return true;
+  return QFile::exists(full_destination_path);
 }

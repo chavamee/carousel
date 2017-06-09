@@ -17,7 +17,7 @@
 
 #include "SoftRemoveFile.hpp"
 
-SoftRemoveFile::SoftRemoveFile(QFileInfo file) {
+SoftRemoveFile::SoftRemoveFile(const QFileInfo& file) {
   if (QDir(QDir::homePath() + "/.Trash").exists()) {
     m_trashDirectory = QDir::homePath() + "/.Trash";
   } else if (QDir(QDir::homePath() + "/.local/share/Trash").exists()) {
