@@ -220,13 +220,12 @@ void Carousel::workingDirectoryModified(QFileInfo* restoredFile) {
 
 void Carousel::fileUpdated(QFileInfo newFile) {
   m_filePreview->hide();
-  QLayoutItem* replacedItem = m_grid->replaceWidget(
-      m_filePreview, Previewers::GetPreviewForFile(this, newFile));
-  if (replacedItem != nullptr) {
-    delete replacedItem;
-  }
-
+  FilePreview* last_preview = m_filePreview;
   m_filePreview = Previewers::GetPreviewForFile(this, newFile);
+  QLayoutItem* replacedItem =
+      m_grid->replaceWidget(last_preview, m_filePreview);
+  delete replacedItem;
+
   m_filePreview->Show(newFile);
   m_nameEdit->setText(m_directory->Current().fileName());
 }

@@ -18,33 +18,38 @@
 #include "IconPreview.hpp"
 #include "ImagePreview.hpp"
 #include "Previewers.hpp"
+#include "VideoPreview.hpp"
 
 std::map<Previewers::FileType, FilePreview*> Previewers::m_previewers;
 
-FilePreview* Previewers::GetPreviewForFile(QWidget* parent, QFileInfo file) {
+FilePreview* Previewers::GetPreviewForFile(QWidget* parent,
+                                           const QFileInfo& file) {
   QMimeDatabase mimeDatabase;
   const QMimeType mimeType = mimeDatabase.mimeTypeForFile(file);
   if (isImage(mimeType)) {
-    if (Previewers::m_previewers[FileType::Image] != nullptr) {
-      return Previewers::m_previewers[FileType::Image];
-    } else {
+    if (Previewers::m_previewers[FileType::Image] == nullptr) {
       Previewers::m_previewers[FileType::Image] = new ImagePreview(parent);
-      return Previewers::m_previewers[FileType::Image];
     }
-  } else {
-    FileType foundType = FileType::Unkown;
-    if (Previewers::m_previewers[foundType] != nullptr) {
-      return Previewers::m_previewers[foundType];
-    } else {
-      Previewers::m_previewers[foundType] = new IconPreview(parent);
-      return Previewers::m_previewers[foundType];
-    }
+
+    return Previewers::m_previewers[FileType::Image];
   }
 
-  return nullptr;
+  if (isVideo(mimeType)) {
+    if (Previewers::m_previewers[FileType::Video] == nullptr) {
+      Previewers::m_previewers[FileType::Video] = new VideoPreview(parent);
+    }
+
+    return Previewers::m_previewers[FileType::Video];
+  }
+
+  if (Previewers::m_previewers[FileType::Unkown] == nullptr) {
+    Previewers::m_previewers[FileType::Unkown] = new IconPreview(parent);
+  }
+
+  return Previewers::m_previewers[FileType::Unkown];
 }
 
-bool Previewers::isImage(QMimeType type) {
+bool Previewers::isImage(const QMimeType& type) {
   std::array<QString, 10> supported_image_mime_types = {
       "image/bmp",
       "image/gif",
@@ -58,6 +63,19 @@ bool Previewers::isImage(QMimeType type) {
 
   for (auto& imageType : supported_image_mime_types) {
     if (type.inherits(imageType)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool Previewers::isVideo(const QMimeType& type) {
+  std::array<QString, 2> supported_video_mime_types = {"video/mp4",
+                                                       "video/webm"};
+
+  for (auto& videoType : supported_video_mime_types) {
+    if (type.inherits(videoType)) {
       return true;
     }
   }
