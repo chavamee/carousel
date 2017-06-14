@@ -49,10 +49,11 @@ class Previewers {
    * @param parent The parent widget for the previewer
    * @param file The file to preview
    */
-  static FilePreview* GetPreviewForFile(QWidget* parent, QFileInfo file);
+  static FilePreview* GetPreviewForFile(QWidget* parent, const QFileInfo& file);
 
  private:
-  static bool isImage(QMimeType mimeType);
+  static bool isImage(const QMimeType& type);
+  static bool isVideo(const QMimeType& type);
   static std::map<FileType, FilePreview*> m_previewers;
 };
 

@@ -146,10 +146,10 @@ class Carousel : public QWidget {
    */
   void processRemoveKey(QKeyEvent* event);
 
-  QGridLayout* m_grid;
-  QLineEdit* m_nameEdit;
-  QPushButton* m_confirmNameEditButton;
-  FilePreview* m_filePreview;
+  QGridLayout* m_grid = nullptr;
+  QLineEdit* m_nameEdit = nullptr;
+  QPushButton* m_confirmNameEditButton = nullptr;
+  FilePreview* m_filePreview = nullptr;
   std::map<Direction, std::tuple<QString, QPushButton*>> m_directories;
 
   QSharedPointer<Directory> m_directory;

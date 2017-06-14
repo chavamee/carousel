@@ -13,23 +13,21 @@
  * GNU General Public License for more details.
  */
 
-#include <QPixmap>
-#include <QVBoxLayout>
+#ifndef CAROUSEL_GUI_VIDEOWIDGET_H
+#define CAROUSEL_GUI_VIDEOWIDGET_H
 
-#include "ImagePreview.hpp"
+#include <QVideoWidget>
 
-ImagePreview::ImagePreview(QWidget* parent)
-    : FilePreview(parent), m_label(new QLabel(this)) {
-  auto layout = new QVBoxLayout;
-  m_label->setGeometry(geometry());
-  m_label->setMinimumHeight(geometry().height());
-  m_label->setMinimumWidth(geometry().width());
-  layout->addWidget(m_label);
-  setLayout(layout);
-}
+class VideoWidget : public QVideoWidget {
+  Q_OBJECT
 
-void ImagePreview::Show(QFileInfo file) {
-  QPixmap img(file.absoluteFilePath());
-  m_label->setPixmap(img.scaled(800, 400));
-  show();
-}
+ public:
+  VideoWidget(QWidget *parent = 0);
+
+ protected:
+  void keyPressEvent(QKeyEvent *event) override;
+  void mouseDoubleClickEvent(QMouseEvent *event) override;
+  void mousePressEvent(QMouseEvent *event) override;
+};
+
+#endif  // CAROUSEL_GUI_VIDEOWIDGET_H

@@ -13,11 +13,13 @@
 # GNU General Public License for more details.
 #
 
-QT += widgets
-
 LIBS += -L../app -lapp
 
 TEMPLATE = app
+
+QT += multimediawidgets \
+      multimedia \
+      widgets
 
 CONFIG += c++14
 
@@ -26,12 +28,18 @@ HEADERS += Carousel.hpp \
   FilePreview.hpp \
   IconPreview.hpp \
   ImagePreview.hpp \
+  VideoPreview.hpp \
+  VideoWidget.hpp \
+  PlayerControls.hpp \
   Previewers.hpp
 
 SOURCES += Carousel.cpp \
   MainWindow.cpp \
   IconPreview.cpp \
   ImagePreview.cpp \
+  VideoPreview.cpp \
+  VideoWidget.cpp \
+  PlayerControls.cpp \
   Previewers.cpp \
   main.cpp
 
