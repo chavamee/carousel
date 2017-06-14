@@ -54,6 +54,7 @@ class Previewers {
  private:
   static bool isImage(const QMimeType& type);
   static bool isVideo(const QMimeType& type);
+  static bool isAudio(const QMimeType& type);
   static std::map<FileType, FilePreview*> m_previewers;
 };
 
