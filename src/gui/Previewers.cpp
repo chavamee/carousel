@@ -15,6 +15,7 @@
 
 #include <QMimeDatabase>
 
+#include "AudioPreview.hpp"
 #include "IconPreview.hpp"
 #include "ImagePreview.hpp"
 #include "Previewers.hpp"
@@ -40,6 +41,14 @@ FilePreview* Previewers::GetPreviewForFile(QWidget* parent,
     }
 
     return Previewers::m_previewers[FileType::Video];
+  }
+
+  if (isAudio(mimeType)) {
+    if (Previewers::m_previewers[FileType::Audio] == nullptr) {
+      Previewers::m_previewers[FileType::Audio] = new AudioPreview(parent);
+    }
+
+    return Previewers::m_previewers[FileType::Audio];
   }
 
   if (Previewers::m_previewers[FileType::Unkown] == nullptr) {
@@ -78,6 +87,19 @@ bool Previewers::isVideo(const QMimeType& type) {
     if (type.inherits(videoType)) {
       return true;
     }
+  }
+
+  return false;
+}
+
+bool Previewers::isAudio(const QMimeType& type) {
+  std::array<QString, 2> supported_audio_mime_types = {
+    "audio/mpeg",
+    "audio/x-wav"
+  };
+
+  for (auto& audioType : supported_audio_mime_types) {
+    return type.inherits(audioType);
   }
 
   return false;

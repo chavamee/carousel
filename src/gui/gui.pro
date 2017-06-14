@@ -26,6 +26,7 @@ CONFIG += c++14
 HEADERS += Carousel.hpp \
   MainWindow.hpp \
   FilePreview.hpp \
+  AudioPreview.hpp \
   IconPreview.hpp \
   ImagePreview.hpp \
   VideoPreview.hpp \
@@ -35,6 +36,7 @@ HEADERS += Carousel.hpp \
 
 SOURCES += Carousel.cpp \
   MainWindow.cpp \
+  AudioPreview.cpp \
   IconPreview.cpp \
   ImagePreview.cpp \
   VideoPreview.cpp \
