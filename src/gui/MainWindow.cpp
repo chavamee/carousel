@@ -40,7 +40,8 @@ void MainWindow::open() {
     if (m_carousel != nullptr) {
       delete m_carousel;
     }
-    m_currentDirectory = QSharedPointer<Directory>::create(directoryPath);
+
+    Directory m_currentDirectory {directoryPath};
     m_carousel = new Carousel(this, m_currentDirectory);
     setCentralWidget(m_carousel);
   }

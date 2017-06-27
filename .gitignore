@@ -44,3 +44,6 @@ target_wrapper.*
 
 # QtCtreator CMake
 CMakeLists.txt.user*
+
+# vim plugins artifacts
+*.plist

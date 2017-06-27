@@ -15,6 +15,7 @@
 
 #include <QDir>
 
+#include "FileCommand.hpp"
 #include "SoftRemoveFile.hpp"
 
 SoftRemoveFile::SoftRemoveFile(const QFileInfo& file) {
@@ -25,7 +26,7 @@ SoftRemoveFile::SoftRemoveFile(const QFileInfo& file) {
   } else {
     QDir shareDirectory(QDir::homePath() + "/.local/share/");
     if (not shareDirectory.mkdir("Trash")) {
-      throw std::runtime_error("Could not find or create trash directory");
+      throw FileCommandException("Could not find or create trash directory");
     }
 
     m_trashDirectory = QDir::homePath() + "/.local/share/Trash";

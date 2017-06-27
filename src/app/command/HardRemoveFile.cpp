@@ -14,15 +14,16 @@
  */
 
 #include "HardRemoveFile.hpp"
+#include "FileCommand.hpp"
 
 HardRemoveFile::HardRemoveFile(const QFileInfo& file) : m_file(file) {}
 
 void HardRemoveFile::Exec() {
   if (not m_file.exists()) {
-    throw std::runtime_error("File does not exist");
+    throw FileCommandException("File does not exist");
   }
 
   if (not QFile(m_file.absoluteFilePath()).remove()) {
-    throw std::runtime_error("Failed to remove file");
+    throw FileCommandException("Failed to remove file");
   }
 }

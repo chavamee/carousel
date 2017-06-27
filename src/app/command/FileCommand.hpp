@@ -23,9 +23,24 @@
 
 #include <QFileInfo>
 
+#include <stdexcept>
 #include <utility>
 
 #include "Command.hpp"
+
+/**
+ * Defines an object to be thrown as an exception of a FileCommand.
+ */
+class FileCommandException : public std::runtime_error {
+ public:
+  FileCommandException(const char* what_arg)
+      : std::runtime_error(what_arg), m_what(what_arg) {}
+
+  virtual const char* what() const noexcept { return m_what; }
+
+ private:
+  const char* m_what = nullptr;
+};
 
 /**
  * Provides an interface for filesystem specific

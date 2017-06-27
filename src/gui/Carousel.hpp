@@ -24,7 +24,6 @@
 #include <QGridLayout>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QSharedPointer>
 #include <QWidget>
 
 #include "../app/CommandStack.hpp"
@@ -56,7 +55,7 @@ class Carousel : public QWidget {
    * @param directory A working directory.
    *
    */
-  Carousel(QWidget* parent, QSharedPointer<Directory> directory);
+  Carousel(QWidget* parent, Directory& directory);
 
   /**
    * Undo a previous operation.
@@ -119,7 +118,7 @@ class Carousel : public QWidget {
    *
    * @param newFile The new selected file
    */
-  void fileUpdated(QFileInfo newFile);
+  void fileUpdated(const QFileInfo& newFile);
 
   /**
    * Update the gui when the working directory is modified.
@@ -132,7 +131,7 @@ class Carousel : public QWidget {
   void workingDirectoryModified(QFileInfo* restoredFile = nullptr);
 
   /**
-   * Further process a directional key
+   * Further process a directional key event
    *
    * @param direction The Direction corresponding to the key
    * @param event     The event for the key
@@ -152,7 +151,7 @@ class Carousel : public QWidget {
   FilePreview* m_filePreview = nullptr;
   std::map<Direction, std::tuple<QString, QPushButton*>> m_directories;
 
-  QSharedPointer<Directory> m_directory;
+  Directory m_directory;
   CommandStack m_commandStack;
 };
 

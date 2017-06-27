@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  */
 
+#include "FileCommand.hpp"
 #include "RenameFile.hpp"
 
 RenameFile::RenameFile(const QFileInfo& file, QString newName)
@@ -22,12 +23,12 @@ RenameFile::RenameFile(const QFileInfo& file, QString newName)
 
 void RenameFile::Exec() {
   if (not m_file.exists()) {
-    throw std::runtime_error("File does not exist");
+    throw FileCommandException("File does not exist");
   }
 
   QFile file(m_file.absoluteFilePath());
   if (not file.rename(m_file.absolutePath() + "/" + m_newName)) {
-    throw std::runtime_error("Failed to rename file");
+    throw FileCommandException("Failed to rename file");
   }
 
   m_file = QFileInfo(file);
@@ -35,12 +36,12 @@ void RenameFile::Exec() {
 
 void RenameFile::Undo() {
   if (not m_file.exists()) {
-    throw std::runtime_error("File does not exist");
+    throw FileCommandException("File does not exist");
   }
 
   QFile file(m_file.absoluteFilePath());
   if (not file.rename(m_file.absolutePath() + "/" + m_originalName)) {
-    throw std::runtime_error("Failed to rename file");
+    throw FileCommandException("Failed to rename file");
   }
 
   m_file = QFileInfo(file);

@@ -16,6 +16,7 @@
 #include <QDir>
 
 #include "CopyFile.hpp"
+#include "FileCommand.hpp"
 
 CopyFile::CopyFile(const QFileInfo& file, QString to)
     : m_file(file),
@@ -24,31 +25,31 @@ CopyFile::CopyFile(const QFileInfo& file, QString to)
 
 void CopyFile::Exec() {
   if (not m_file.exists()) {
-    throw std::runtime_error("File does not exist");
+    throw FileCommandException("File does not exist");
   }
 
   if (not QDir(m_destination).exists()) {
-    throw std::runtime_error("Destination does not exist");
+    throw FileCommandException("Destination does not exist");
   }
 
   QString full_destination_path = m_destination + "/" + m_file.fileName();
   if (QFile(full_destination_path).exists()) {
-    throw std::runtime_error("File already exists");
+    throw FileCommandException("File already exists");
   }
 
   if (not QFile(m_file.absoluteFilePath()).copy(full_destination_path)) {
-    throw std::runtime_error("Failed to copy file");
+    throw FileCommandException("Failed to copy file");
   }
 }
 
 void CopyFile::Undo() {
   QString full_destination_path = m_destination + "/" + m_file.fileName();
   if (not QFile::exists(full_destination_path)) {
-    throw std::runtime_error("Copy no longer exists");
+    throw FileCommandException("Copy no longer exists");
   }
 
   if (not QFile(full_destination_path).remove()) {
-    throw std::runtime_error("Failed to undo copy");
+    throw FileCommandException("Failed to undo copy");
   }
 }
 

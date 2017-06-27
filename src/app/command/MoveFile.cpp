@@ -15,6 +15,7 @@
 
 #include <QDir>
 
+#include "FileCommand.hpp"
 #include "MoveFile.hpp"
 
 MoveFile::MoveFile(const QFileInfo& file, QString to)
@@ -24,36 +25,43 @@ MoveFile::MoveFile(const QFileInfo& file, QString to)
 
 void MoveFile::Exec() {
   if (not m_file.exists()) {
-    throw std::runtime_error("File does not exist");
+    throw FileCommandException("File does not exist");
   }
 
   if (not QDir(m_destination).exists()) {
-    throw std::runtime_error("Destination does not exist");
+    throw FileCommandException("Destination does not exist");
   }
 
   QString full_destination_path = m_destination + "/" + m_file.fileName();
   if (QFile::exists(full_destination_path)) {
-    throw std::runtime_error("File already exists");
+    throw FileCommandException("File already exists");
   }
 
   QFile file(m_file.absoluteFilePath());
   if (not file.rename(full_destination_path)) {
-    throw std::runtime_error("Failed to copy file");
+    throw FileCommandException("Failed to move file");
   }
 
   m_file = QFileInfo(file);
 }
 
 void MoveFile::Undo() {
-  QString full_destination_path = m_destination + "/" + m_file.fileName();
-  if (not QFile::exists(full_destination_path)) {
-    throw std::runtime_error("Copy no longer exists");
+  if (not m_file.exists()) {
+    throw FileCommandException("Moved file no longer exists");
   }
 
-  QFile file(full_destination_path);
-  if (not QFile(full_destination_path)
-              .rename(m_origin + "/" + m_file.fileName())) {
-    throw std::runtime_error("Failed to undo copy");
+  if (not QDir(m_origin).exists()) {
+    throw FileCommandException("Origin does not exist");
+  }
+
+  QString full_destination_path = m_origin + "/" + m_file.fileName();
+  if (QFile::exists(full_destination_path)) {
+    throw FileCommandException("File already exists");
+  }
+
+  QFile file(m_file.absoluteFilePath());
+  if (not file.rename(full_destination_path)) {
+    throw FileCommandException("Failed to undo move");
   }
 
   m_file = QFileInfo(file);

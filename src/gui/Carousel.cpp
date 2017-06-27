@@ -35,8 +35,8 @@ using std::unique_ptr;
 using std::make_unique;
 using std::make_tuple;
 
-Carousel::Carousel(QWidget* parent, QSharedPointer<Directory> directory)
-    : QWidget(parent), m_directory(directory) {
+Carousel::Carousel(QWidget* parent, Directory& directory)
+    : QWidget(parent), m_directory(std::move(directory)) {
   createGrid();
   setFocusPolicy(Qt::StrongFocus);
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -70,17 +70,17 @@ void Carousel::createGrid() {
   m_directories[Direction::West] = make_tuple("", westButton);
 
   auto vlayout = new QVBoxLayout;
-  m_filePreview = Previewers::GetPreviewForFile(this, m_directory->Current());
+  m_filePreview = Previewers::GetPreviewForFile(this, m_directory.Current());
   m_filePreview->setGeometry(QRect(x(), y(), width() * 0.5, height() * 0.5));
   vlayout->addWidget(m_filePreview);
-  m_filePreview->Show(m_directory->Current());
+  m_filePreview->Show(m_directory.Current());
 
   auto hlayout = new QHBoxLayout;
   m_nameEdit = new QLineEdit;
   m_nameEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   m_nameEdit->setFocusPolicy(Qt::ClickFocus);
   hlayout->addWidget(m_nameEdit);
-  m_nameEdit->setText(m_directory->Current().fileName());
+  m_nameEdit->setText(m_directory.Current().fileName());
 
   m_confirmNameEditButton = new QPushButton;
   m_confirmNameEditButton->setFocusPolicy(Qt::NoFocus);
@@ -106,11 +106,12 @@ void Carousel::eastButtonPushed() { buttonPushed(Direction::East); }
 void Carousel::westButtonPushed() { buttonPushed(Direction::West); }
 
 void Carousel::confirmNameEditPushed() {
-  if (m_nameEdit->text() == m_directory->Current().fileName()) {
+  if (m_nameEdit->text() == m_directory.Current().fileName()) {
+    // Nothing to do if the names are the same
     return;
   }
 
-  auto currentFile = m_directory->Current();
+  auto currentFile = m_directory.Current();
   try {
     unique_ptr<RenameFile> command =
         make_unique<RenameFile>(currentFile, m_nameEdit->text());
@@ -120,7 +121,8 @@ void Carousel::confirmNameEditPushed() {
     if (command->IsReversible()) {
       m_commandStack.Add(std::move(command), currentFile);
     }
-  } catch (std::exception& e) {
+  } catch (FileCommandException& e) {
+    QMessageBox::critical(this, "Carousel", QString(e.what()));
   }
 }
 
@@ -132,13 +134,14 @@ void Carousel::undo() {
     if (command->IsReversible()) {
       command->Undo();
     }
-  } catch (std::exception& e) {
-  }
 
-  if (typeid(command) != typeid(FileCommand<CopyFile>)) {
-    workingDirectoryModified(&file);
-  } else {
-    workingDirectoryModified();
+    if (typeid(command) != typeid(FileCommand<CopyFile>)) {
+      workingDirectoryModified(&file);
+    } else {
+      workingDirectoryModified();
+    }
+  } catch (FileCommandException& e) {
+    QMessageBox::critical(this, "Carousel", QString(e.what()));
   }
 }
 
@@ -148,37 +151,38 @@ void Carousel::redo() {
   std::tie(command, file) = m_commandStack.Redo();
   try {
     command->Exec();
-  } catch (std::exception& e) {
-  }
 
-  if (typeid(*command) != typeid(FileCommand<CopyFile>)) {
-    workingDirectoryModified();
+    if (typeid(command) != typeid(FileCommand<CopyFile>)) {
+      workingDirectoryModified();
+    }
+  } catch (FileCommandException& e) {
+    QMessageBox::critical(this, "Carousel", QString(e.what()));
   }
 }
 
 void Carousel::buttonPushed(Direction direction) {
   QString destinationPath = QFileDialog::getExistingDirectory(this);
   if (not destinationPath.isEmpty()) {
-    if (destinationPath == m_directory->AbsolutePath()) {
+    if (destinationPath == m_directory.AbsolutePath()) {
       QMessageBox::warning(
           this, "Carousel",
           "Cannot select the same directory as the working directory");
       return;
     }
 
-    std::get<0>(m_directories[direction]) = destinationPath;
-    std::get<1>(m_directories[direction])
-        ->setText(QFileInfo(destinationPath).fileName());
+    auto& directory = m_directories[direction];
+    std::get<0>(directory) = destinationPath;
+    std::get<1>(directory)->setText(QFileInfo(destinationPath).fileName());
   }
 }
 
 void Carousel::keyPressEvent(QKeyEvent* event) {
   switch (event->key()) {
     case Qt::Key_Left:
-      fileUpdated(m_directory->Prev());
+      fileUpdated(m_directory.Prev());
       break;
     case Qt::Key_Right:
-      fileUpdated(m_directory->Next());
+      fileUpdated(m_directory.Next());
       break;
     case Qt::Key_J:
       processDirectionalCommandKey(Direction::South, event);
@@ -189,8 +193,7 @@ void Carousel::keyPressEvent(QKeyEvent* event) {
     case Qt::Key_K:
       processDirectionalCommandKey(Direction::North, event);
       break;
-    case Qt::Key_L:
-      processDirectionalCommandKey(Direction::East, event);
+    case Qt::Key_L: processDirectionalCommandKey(Direction::East, event);
       break;
     case Qt::Key_R:
       processRemoveKey(event);
@@ -203,22 +206,23 @@ void Carousel::workingDirectoryModified(QFileInfo* restoredFile) {
   if (restoredFile != nullptr) {
     file = *restoredFile;
   } else {
-    file = m_directory->Next();
-  }
-  m_directory = QSharedPointer<Directory>::create(m_directory->AbsolutePath());
-
-  if (not m_directory->ResetToFile(file)) {
-    m_directory->ResetToPos(0);
+    file = m_directory.Next();
   }
 
-  file = m_directory->Current();
+  m_directory = Directory{m_directory.AbsolutePath()};
+
+  if (not m_directory.ResetToFile(file)) {
+    m_directory.ResetToPos(0);
+  }
+
+  file = m_directory.Current();
   m_filePreview->hide();
   m_filePreview = Previewers::GetPreviewForFile(this, file);
   m_filePreview->Show(file);
-  m_nameEdit->setText(m_directory->Current().fileName());
+  m_nameEdit->setText(m_directory.Current().fileName());
 }
 
-void Carousel::fileUpdated(QFileInfo newFile) {
+void Carousel::fileUpdated(const QFileInfo& newFile) {
   m_filePreview->hide();
   FilePreview* last_preview = m_filePreview;
   m_filePreview = Previewers::GetPreviewForFile(this, newFile);
@@ -227,7 +231,7 @@ void Carousel::fileUpdated(QFileInfo newFile) {
   delete replacedItem;
 
   m_filePreview->Show(newFile);
-  m_nameEdit->setText(m_directory->Current().fileName());
+  m_nameEdit->setText(m_directory.Current().fileName());
 }
 
 void Carousel::processDirectionalCommandKey(Direction direction,
@@ -244,7 +248,7 @@ void Carousel::processDirectionalCommandKey(Direction direction,
     return;
   }
 
-  auto currentFile = m_directory->Current();
+  auto currentFile = m_directory.Current();
   unique_ptr<Command> command;
   if (event->text().at(0).isUpper()) {
     command = make_unique<FileCommand<CopyFile>>(currentFile, path);
@@ -255,21 +259,21 @@ void Carousel::processDirectionalCommandKey(Direction direction,
   if (command != nullptr) {
     try {
       command->Exec();
-      if (typeid(*command) != typeid(FileCommand<CopyFile>)) {
+      if (typeid(command) != typeid(FileCommand<CopyFile>)) {
         workingDirectoryModified();
       }
 
-    } catch (std::exception& e) {
-    }
-
-    if (command->IsReversible()) {
-      m_commandStack.Add(std::move(command), currentFile);
+      if (command->IsReversible()) {
+        m_commandStack.Add(std::move(command), currentFile);
+      }
+    } catch (FileCommandException& e) {
+      QMessageBox::critical(this, "Carousel", QString(e.what()));
     }
   }
 }
 
 void Carousel::processRemoveKey(QKeyEvent* event) {
-  auto currentFile = m_directory->Current();
+  auto currentFile = m_directory.Current();
   unique_ptr<Command> command;
   if (event->text().at(0).isLower()) {
     command = make_unique<FileCommand<SoftRemoveFile>>(currentFile);
@@ -290,11 +294,12 @@ void Carousel::processRemoveKey(QKeyEvent* event) {
     try {
       command->Exec();
       workingDirectoryModified();
-    } catch (std::exception& e) {
-    }
 
-    if (command->IsReversible()) {
-      m_commandStack.Add(std::move(command), currentFile);
+      if (command->IsReversible()) {
+        m_commandStack.Add(std::move(command), currentFile);
+      }
+    } catch (FileCommandException& e) {
+      QMessageBox::critical(this, "Carousel", QString(e.what()));
     }
   }
 }
