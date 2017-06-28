@@ -32,12 +32,7 @@ AudioPreview::AudioPreview(QWidget* parent) : FilePreview(parent) {
 
   m_player->setVolume(50);
 
-  m_slider = new QSlider(Qt::Horizontal, this);
-  m_slider->setRange(0, m_player->duration() / 1000);
-
-  connect(m_slider, SIGNAL(sliderMoved(int)), this, SLOT(seek(int)));
-
-  m_controls = new PlayerControls(this);
+  m_controls = new PlayerControls(*m_player, this);
   m_controls->SetState(m_player->state());
   m_controls->SetMuted(m_controls->IsMuted());
 
@@ -45,6 +40,8 @@ AudioPreview::AudioPreview(QWidget* parent) : FilePreview(parent) {
   connect(m_controls, SIGNAL(Pause()), m_player, SLOT(pause()));
   connect(m_controls, SIGNAL(ChangeMuting(bool)), m_player,
           SLOT(setMuted(bool)));
+  connect(m_controls, SIGNAL(SliderMoved(int)), this, SLOT(seekBy(int)));
+  connect(m_controls, SIGNAL(SliderReleased()), this, SLOT(seekEnd()));
 
   connect(m_player, SIGNAL(stateChanged(QMediaPlayer::State)), m_controls,
           SLOT(SetState(QMediaPlayer::State)));
@@ -53,7 +50,6 @@ AudioPreview::AudioPreview(QWidget* parent) : FilePreview(parent) {
 
   auto layout = new QHBoxLayout;
   layout->addWidget(m_controls);
-  layout->addWidget(m_slider);
 
   setLayout(layout);
 
@@ -90,17 +86,22 @@ bool AudioPreview::IsPlayerAvailable() const { return m_player->isAvailable(); }
 
 void AudioPreview::durationChanged(qint64 duration) {
   m_duration = duration / 1000;
-  m_slider->setMaximum(duration / 1000);
+  m_controls->SetMaximumDuration(duration / 1000);
 }
 
 void AudioPreview::positionChanged(qint64 progress) {
-  if (not m_slider->isSliderDown()) {
-    m_slider->setValue(progress / 1000);
+  if (not m_controls->IsSliderDown()) {
+    m_controls->SetPosition(progress / 1000);
   }
   updateDurationInfo(progress / 1000);
 }
 
-void AudioPreview::seek(int seconds) { m_player->setPosition(seconds * 1000); }
+void AudioPreview::seekBy(int seconds) { m_currentPosition.storeRelease(seconds * 1000); }
+
+void AudioPreview::seekEnd() {
+  int position = m_currentPosition.loadAcquire();
+  m_player->setPosition(position);
+}
 
 void AudioPreview::statusChanged(QMediaPlayer::MediaStatus status) {
   handleCursor(status);

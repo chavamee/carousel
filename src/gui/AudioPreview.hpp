@@ -47,7 +47,8 @@ class AudioPreview : public FilePreview {
   void durationChanged(qint64 duration);
   void positionChanged(qint64 progress);
 
-  void seek(int seconds);
+  void seekBy(int seconds);
+  void seekEnd();
 
   void statusChanged(QMediaPlayer::MediaStatus status);
 
@@ -57,8 +58,8 @@ class AudioPreview : public FilePreview {
 
   QMediaPlayer* m_player = nullptr;
   PlayerControls* m_controls = nullptr;
-  QSlider* m_slider = nullptr;
   qint64 m_duration = 0;
+  QAtomicInt m_currentPosition;
 };
 
 #endif

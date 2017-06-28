@@ -16,6 +16,7 @@
 #ifndef CAROUSEL_GUI_PLAYERCONTROLS_H
 #define CAROUSEL_GUI_PLAYERCONTROLS_H
 
+#include <QSlider>
 #include <QMediaPlayer>
 #include <QWidget>
 
@@ -25,10 +26,13 @@ class PlayerControls : public QWidget {
   Q_OBJECT
 
  public:
-  PlayerControls(QWidget* parent = 0);
+  PlayerControls(const QMediaPlayer& player, QWidget* parent = 0);
 
   inline QMediaPlayer::State State() const { return m_playerState; }
   inline bool IsMuted() const { return m_playerMuted; }
+  void SetMaximumDuration(qint64 duration);
+  void SetPosition(qint64 position);
+  inline bool IsSliderDown() { m_slider->isSliderDown(); }
 
  public slots:
   void SetState(QMediaPlayer::State state);
@@ -37,18 +41,23 @@ class PlayerControls : public QWidget {
  signals:
   void Play();
   void Pause();
+  void SliderMoved(int);
+  void SliderReleased();
 
   void ChangeMuting(bool muting);
 
  private slots:
   void playClicked();
   void muteClicked();
+  void sliderMoved(int seconds);
+  void sliderReleased();
 
  private:
   QMediaPlayer::State m_playerState = QMediaPlayer::StoppedState;
   bool m_playerMuted = false;
   QAbstractButton* m_playButton = nullptr;
   QAbstractButton* m_muteButton = nullptr;
+  QSlider* m_slider = nullptr;
 };
 
 #endif  // CAROUSEL_GUI_PLAYERCONTROLS_H

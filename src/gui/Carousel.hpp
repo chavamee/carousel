@@ -21,14 +21,16 @@
 #ifndef CAROUSEL_GUI_CAROUSEL_H
 #define CAROUSEL_GUI_CAROUSEL_H
 
-#include <QGridLayout>
-#include <QLineEdit>
-#include <QPushButton>
 #include <QWidget>
 
 #include "../app/CommandStack.hpp"
 #include "../app/Directory.hpp"
 #include "FilePreview.hpp"
+
+class QStackedWidget;
+class QGridLayout;
+class QLineEdit;
+class QPushButton;
 
 /**
  * Responsible for directory selection and command management.
@@ -148,6 +150,7 @@ class Carousel : public QWidget {
   QGridLayout* m_grid = nullptr;
   QLineEdit* m_nameEdit = nullptr;
   QPushButton* m_confirmNameEditButton = nullptr;
+  QStackedWidget* m_previewersStack = nullptr;
   FilePreview* m_filePreview = nullptr;
   std::map<Direction, std::tuple<QString, QPushButton*>> m_directories;
 

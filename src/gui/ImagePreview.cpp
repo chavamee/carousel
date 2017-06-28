@@ -21,9 +21,6 @@
 ImagePreview::ImagePreview(QWidget* parent)
     : FilePreview(parent), m_label(new QLabel(this)) {
   auto layout = new QVBoxLayout;
-  m_label->setGeometry(geometry());
-  m_label->setMinimumHeight(geometry().height());
-  m_label->setMinimumWidth(geometry().width());
   layout->addWidget(m_label);
   setLayout(layout);
 }

@@ -15,9 +15,12 @@
 
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QGridLayout>
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QPushButton>
+#include <QStackedWidget>
 
 #include <memory>
 #include <string>
@@ -39,7 +42,6 @@ Carousel::Carousel(QWidget* parent, Directory& directory)
     : QWidget(parent), m_directory(std::move(directory)) {
   createGrid();
   setFocusPolicy(Qt::StrongFocus);
-  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
 void Carousel::createGrid() {
@@ -69,11 +71,12 @@ void Carousel::createGrid() {
   m_grid->addWidget(westButton, 1, 0, 1, 1, Qt::AlignCenter);
   m_directories[Direction::West] = make_tuple("", westButton);
 
-  auto vlayout = new QVBoxLayout;
   m_filePreview = Previewers::GetPreviewForFile(this, m_directory.Current());
-  m_filePreview->setGeometry(QRect(x(), y(), width() * 0.5, height() * 0.5));
-  vlayout->addWidget(m_filePreview);
   m_filePreview->Show(m_directory.Current());
+
+  m_previewersStack = new QStackedWidget;
+  m_previewersStack->addWidget(m_filePreview);
+  m_previewersStack->setCurrentWidget(m_filePreview);
 
   auto hlayout = new QHBoxLayout;
   m_nameEdit = new QLineEdit;
@@ -88,8 +91,11 @@ void Carousel::createGrid() {
                                          QSizePolicy::Minimum);
   connect(m_confirmNameEditButton, SIGNAL(clicked()), this,
           SLOT(confirmNameEditPushed()));
+
   hlayout->addWidget(m_confirmNameEditButton);
 
+  auto vlayout = new QVBoxLayout;
+  vlayout->addWidget(m_previewersStack, 0, Qt::AlignCenter);
   vlayout->addLayout(hlayout);
 
   m_grid->addLayout(vlayout, 1, 1, 1, 1, Qt::AlignCenter);
@@ -193,7 +199,8 @@ void Carousel::keyPressEvent(QKeyEvent* event) {
     case Qt::Key_K:
       processDirectionalCommandKey(Direction::North, event);
       break;
-    case Qt::Key_L: processDirectionalCommandKey(Direction::East, event);
+    case Qt::Key_L:
+      processDirectionalCommandKey(Direction::East, event);
       break;
     case Qt::Key_R:
       processRemoveKey(event);
@@ -224,11 +231,12 @@ void Carousel::workingDirectoryModified(QFileInfo* restoredFile) {
 
 void Carousel::fileUpdated(const QFileInfo& newFile) {
   m_filePreview->hide();
-  FilePreview* last_preview = m_filePreview;
   m_filePreview = Previewers::GetPreviewForFile(this, newFile);
-  QLayoutItem* replacedItem =
-      m_grid->replaceWidget(last_preview, m_filePreview);
-  delete replacedItem;
+  if (m_previewersStack->indexOf(m_filePreview) == -1) {
+    m_previewersStack->addWidget(m_filePreview);
+  }
+
+  m_previewersStack->setCurrentWidget(m_filePreview);
 
   m_filePreview->Show(newFile);
   m_nameEdit->setText(m_directory.Current().fileName());
