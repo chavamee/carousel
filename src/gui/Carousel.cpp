@@ -33,8 +33,8 @@
 #include "../app/command/MoveFile.hpp"
 #include "../app/command/RenameFile.hpp"
 #include "../app/command/SoftRemoveFile.hpp"
+
 #include "Carousel.hpp"
-#include "Previewers.hpp"
 
 using std::unique_ptr;
 using std::make_unique;
@@ -84,7 +84,8 @@ void Carousel::createGrid() {
 
   m_confirmNameEditButton = new QToolButton;
   m_confirmNameEditButton->setFocusPolicy(Qt::NoFocus);
-  m_confirmNameEditButton->setIcon(style()->standardIcon(QStyle::SP_DialogApplyButton));
+  m_confirmNameEditButton->setIcon(
+      style()->standardIcon(QStyle::SP_DialogApplyButton));
   connect(m_confirmNameEditButton, SIGNAL(clicked()), this,
           SLOT(confirmNameEditPushed()));
 
@@ -175,7 +176,7 @@ void Carousel::setWorkingDirectory(Directory& directory) {
     return;
   }
 
-  m_filePreview = Previewers::GetPreviewForFile(this, m_directory.Current());
+  m_filePreview = m_previewers.GetPreviewForFile(this, m_directory.Current());
   if (m_centralStack->indexOf(m_filePreview) == -1) {
     m_centralStack->addWidget(m_filePreview);
   }
@@ -243,14 +244,14 @@ void Carousel::workingDirectoryModified(QFileInfo* restoredFile) {
 
   file = m_directory.Current();
   m_filePreview->hide();
-  m_filePreview = Previewers::GetPreviewForFile(this, file);
+  m_filePreview = m_previewers.GetPreviewForFile(this, file);
   m_filePreview->Show(file);
   m_nameEdit->setText(m_directory.Current().fileName());
 }
 
 void Carousel::fileUpdated(const QFileInfo& newFile) {
   m_filePreview->hide();
-  m_filePreview = Previewers::GetPreviewForFile(this, newFile);
+  m_filePreview = m_previewers.GetPreviewForFile(this, newFile);
   if (m_centralStack->indexOf(m_filePreview) == -1) {
     m_centralStack->addWidget(m_filePreview);
   }

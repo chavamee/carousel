@@ -26,13 +26,17 @@
 
 #include "../app/CommandStack.hpp"
 #include "../app/Directory.hpp"
+
 #include "FilePreview.hpp"
+#include "Previewers.hpp"
 
 class QStackedWidget;
 class QGridLayout;
 class QLineEdit;
 class QPushButton;
 class QToolButton;
+
+class Previewers;
 
 /**
  * Responsible for directory selection and command management.
@@ -167,6 +171,7 @@ class Carousel : public QWidget {
 
   Directory m_directory;
   CommandStack m_commandStack;
+  Previewers m_previewers;
 };
 
 #endif  // CAROUSEL_GUI_CAROUSEL_H
