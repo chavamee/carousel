@@ -15,20 +15,31 @@
 
 #include "Directory.hpp"
 
-using namespace std;
+using std::string;
 
 Directory::Directory(const QString& path) : m_directory(path) {
   if (not m_directory.exists()) {
-    throw std::runtime_error(
-        std::string("Could not find directory with path: ") +
-        path.toStdString());
+    throw std::runtime_error(string("Could not find directory with path: ") +
+                             path.toStdString());
   }
 
   m_files = m_directory.entryInfoList(QDir::Files);
 }
 
+Directory::Directory(const Directory& other)
+    : m_directory(other.m_directory), m_files(other.m_files) {}
+
+Directory::Directory(Directory&& other) noexcept
+    : m_directory(other.m_directory), m_files(std::move(other.m_files)) {}
+
+Directory& Directory::operator=(Directory other) {
+  m_directory.swap(other.m_directory);
+  m_files.swap(other.m_files);
+  return *this;
+}
+
 QFileInfo Directory::Next() {
-  if (m_index < (size_type)m_files.size() - 1) {
+  if (m_index < static_cast<size_type>(m_files.size()) - 1) {
     m_index += 1;
   }
   return m_files.at(m_index);
@@ -43,20 +54,20 @@ QFileInfo Directory::Prev() {
 
 QFileInfo Directory::Current() { return m_files.at(m_index); }
 
-bool Directory::ResetToFile(QFileInfo file) {
+bool Directory::ResetToFile(const QFileInfo& file) {
   int interm_index = m_files.indexOf(file);
   if (interm_index == -1) {
-    m_index = m_files.size() > 0 ? m_files.size() - 1 : 0;
+    m_index = not m_files.empty() ? m_files.size() - 1 : 0;
     return false;
-  } else {
-    m_index = interm_index;
   }
+
+  m_index = interm_index;
 
   return true;
 }
 
 void Directory::ResetToPos(size_type pos) {
-  if (pos >= (size_type)m_files.size()) {
+  if (pos >= static_cast<size_type>(m_files.size())) {
     std::runtime_error("Position out of bounds");
   }
   m_index = pos;

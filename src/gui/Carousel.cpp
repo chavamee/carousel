@@ -21,6 +21,8 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QStackedWidget>
+#include <QStyle>
+#include <QToolButton>
 
 #include <memory>
 #include <string>
@@ -38,8 +40,7 @@ using std::unique_ptr;
 using std::make_unique;
 using std::make_tuple;
 
-Carousel::Carousel(QWidget* parent, Directory& directory)
-    : QWidget(parent), m_directory(std::move(directory)) {
+Carousel::Carousel(QWidget* parent) : QWidget(parent) {
   createGrid();
   setFocusPolicy(Qt::StrongFocus);
 }
@@ -71,34 +72,32 @@ void Carousel::createGrid() {
   m_grid->addWidget(westButton, 1, 0, 1, 1, Qt::AlignCenter);
   m_directories[Direction::West] = make_tuple("", westButton);
 
-  m_filePreview = Previewers::GetPreviewForFile(this, m_directory.Current());
-  m_filePreview->Show(m_directory.Current());
+  m_centralText = new QLabel;
 
-  m_previewersStack = new QStackedWidget;
-  m_previewersStack->addWidget(m_filePreview);
-  m_previewersStack->setCurrentWidget(m_filePreview);
+  m_centralStack = new QStackedWidget;
+  m_centralStack->addWidget(m_centralText);
 
   auto hlayout = new QHBoxLayout;
   m_nameEdit = new QLineEdit;
-  m_nameEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   m_nameEdit->setFocusPolicy(Qt::ClickFocus);
   hlayout->addWidget(m_nameEdit);
-  m_nameEdit->setText(m_directory.Current().fileName());
 
-  m_confirmNameEditButton = new QPushButton;
+  m_confirmNameEditButton = new QToolButton;
   m_confirmNameEditButton->setFocusPolicy(Qt::NoFocus);
-  m_confirmNameEditButton->setSizePolicy(QSizePolicy::Minimum,
-                                         QSizePolicy::Minimum);
+  m_confirmNameEditButton->setIcon(style()->standardIcon(QStyle::SP_DialogApplyButton));
   connect(m_confirmNameEditButton, SIGNAL(clicked()), this,
           SLOT(confirmNameEditPushed()));
 
   hlayout->addWidget(m_confirmNameEditButton);
 
   auto vlayout = new QVBoxLayout;
-  vlayout->addWidget(m_previewersStack, 0, Qt::AlignCenter);
+  vlayout->addWidget(m_centralStack, 0, Qt::AlignCenter);
   vlayout->addLayout(hlayout);
 
   m_grid->addLayout(vlayout, 1, 1, 1, 1, Qt::AlignCenter);
+  m_grid->setColumnStretch(0, 1);
+  m_grid->setColumnStretch(1, 0);
+  m_grid->setColumnStretch(2, 1);
 
   setLayout(m_grid);
 }
@@ -164,6 +163,26 @@ void Carousel::redo() {
   } catch (FileCommandException& e) {
     QMessageBox::critical(this, "Carousel", QString(e.what()));
   }
+}
+
+void Carousel::setWorkingDirectory(Directory& directory) {
+  m_directory = directory;
+
+  if (m_directory.IsEmpty()) {
+    m_centralStack->setCurrentWidget(m_centralText);
+    m_centralText->setText("Directory is empty");
+
+    return;
+  }
+
+  m_filePreview = Previewers::GetPreviewForFile(this, m_directory.Current());
+  if (m_centralStack->indexOf(m_filePreview) == -1) {
+    m_centralStack->addWidget(m_filePreview);
+  }
+  m_centralStack->setCurrentWidget(m_filePreview);
+  m_filePreview->Show(m_directory.Current());
+
+  m_nameEdit->setText(m_directory.Current().fileName());
 }
 
 void Carousel::buttonPushed(Direction direction) {
@@ -232,11 +251,11 @@ void Carousel::workingDirectoryModified(QFileInfo* restoredFile) {
 void Carousel::fileUpdated(const QFileInfo& newFile) {
   m_filePreview->hide();
   m_filePreview = Previewers::GetPreviewForFile(this, newFile);
-  if (m_previewersStack->indexOf(m_filePreview) == -1) {
-    m_previewersStack->addWidget(m_filePreview);
+  if (m_centralStack->indexOf(m_filePreview) == -1) {
+    m_centralStack->addWidget(m_filePreview);
   }
 
-  m_previewersStack->setCurrentWidget(m_filePreview);
+  m_centralStack->setCurrentWidget(m_filePreview);
 
   m_filePreview->Show(newFile);
   m_nameEdit->setText(m_directory.Current().fileName());

@@ -19,32 +19,27 @@
 #include "Carousel.hpp"
 #include "MainWindow.hpp"
 
-using namespace std;
-
-MainWindow::MainWindow(QString directoryPath) {
+MainWindow::MainWindow() {
   createActions();
   createStatusBar();
 
-  if (directoryPath.isEmpty()) {
-    createSplashView();
-  }
-
   setUnifiedTitleAndToolBarOnMac(true);
+
+  createSplashView();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {}
 
 void MainWindow::open() {
   QString directoryPath = QFileDialog::getExistingDirectory(this);
-  if (not directoryPath.isEmpty()) {
-    if (m_carousel != nullptr) {
-      delete m_carousel;
-    }
-
-    Directory m_currentDirectory {directoryPath};
-    m_carousel = new Carousel(this, m_currentDirectory);
-    setCentralWidget(m_carousel);
+  Directory m_currentDirectory{directoryPath};
+  if (m_carousel == nullptr) {
+    m_carousel = new Carousel(this);
   }
+
+  m_carousel->setWorkingDirectory(m_currentDirectory);
+
+  setCentralWidget(m_carousel);
 }
 
 void MainWindow::undo() {

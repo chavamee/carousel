@@ -21,6 +21,7 @@
 #ifndef CAROUSEL_GUI_CAROUSEL_H
 #define CAROUSEL_GUI_CAROUSEL_H
 
+#include <QLabel>
 #include <QWidget>
 
 #include "../app/CommandStack.hpp"
@@ -31,6 +32,7 @@ class QStackedWidget;
 class QGridLayout;
 class QLineEdit;
 class QPushButton;
+class QToolButton;
 
 /**
  * Responsible for directory selection and command management.
@@ -57,7 +59,7 @@ class Carousel : public QWidget {
    * @param directory A working directory.
    *
    */
-  Carousel(QWidget* parent, Directory& directory);
+  Carousel(QWidget* parent);
 
   /**
    * Undo a previous operation.
@@ -68,6 +70,13 @@ class Carousel : public QWidget {
    * Redo a previous undo.
    */
   void redo();
+
+  /**
+   * Set the working directory.
+   *
+   * @param directory the new working directory
+   */
+  void setWorkingDirectory(Directory& directory);
 
  protected:
   void keyPressEvent(QKeyEvent* event) override;
@@ -149,8 +158,10 @@ class Carousel : public QWidget {
 
   QGridLayout* m_grid = nullptr;
   QLineEdit* m_nameEdit = nullptr;
-  QPushButton* m_confirmNameEditButton = nullptr;
-  QStackedWidget* m_previewersStack = nullptr;
+  QToolButton* m_confirmNameEditButton = nullptr;
+  QStackedWidget* m_centralStack = nullptr;
+  QLabel* m_centralText = nullptr;
+
   FilePreview* m_filePreview = nullptr;
   std::map<Direction, std::tuple<QString, QPushButton*>> m_directories;
 

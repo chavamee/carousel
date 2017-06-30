@@ -22,7 +22,6 @@
 #define CAROUSEL_GUI_MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QSharedPointer>
 
 #include <memory>
 
@@ -41,7 +40,7 @@ class MainWindow : public QMainWindow {
   /**
    * Constructor
    */
-  MainWindow(QString directoryPath = QString());
+  MainWindow();
 
  protected:
   /**
@@ -88,8 +87,7 @@ class MainWindow : public QMainWindow {
    */
   void createSplashView();
 
-  QSharedPointer<Directory> m_currentDirectory;
-  Carousel *m_carousel = nullptr;
+  Carousel* m_carousel = nullptr;
 };
 
 #endif  // CAROUSEL_GUI_MAINWINDOW_H

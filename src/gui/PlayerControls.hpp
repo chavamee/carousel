@@ -32,7 +32,7 @@ class PlayerControls : public QWidget {
   inline bool IsMuted() const { return m_playerMuted; }
   void SetMaximumDuration(qint64 duration);
   void SetPosition(qint64 position);
-  inline bool IsSliderDown() { m_slider->isSliderDown(); }
+  inline bool IsSliderDown() { return m_slider->isSliderDown(); }
 
  public slots:
   void SetState(QMediaPlayer::State state);

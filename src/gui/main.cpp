@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     argDirectory = parser.positionalArguments().first();
   }
 
-  MainWindow mainWin{argDirectory};
+  MainWindow mainWin;
   mainWin.show();
 
   return app.exec();

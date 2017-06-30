@@ -38,6 +38,11 @@ class Directory {
   using size_type = std::size_t;
 
   /**
+   * Default Constructor
+   */
+  Directory() = default;
+
+  /**
    * Constructor.
    *
    * If the given directory path does not exist or is invalid,
@@ -46,6 +51,21 @@ class Directory {
    * @param path path to a directory
    */
   Directory(const QString& path);
+
+  /**
+   * Copy Constructor
+   */
+  Directory(const Directory& other);
+
+  /**
+   * Move Constructor.
+   */
+  Directory(Directory&& other) noexcept;
+
+  /**
+   * Move and copy assignment.
+   */
+  Directory& operator=(Directory other);
 
   /**
    * Return the next file in the directory.
@@ -76,7 +96,7 @@ class Directory {
    * @return If the file exists return true,
    *         otherwise return false
    */
-  bool ResetToFile(QFileInfo file);
+  bool ResetToFile(const QFileInfo& file);
 
   /**
    * Reset the index to the given position.

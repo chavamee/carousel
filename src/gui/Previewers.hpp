@@ -34,7 +34,7 @@
 
 class Previewers {
   /**
-   * Enumeration identifying file media types
+   * Enumeration identifying general file media types.
    */
   enum class FileType { Unkown, Image, Video, Audio, Text };
 
@@ -43,7 +43,7 @@ class Previewers {
    * Get a preview appropriate for the given file.
    *
    * This functions initializes the previewer for the first time if it wasn't
-   * created on a previous call. If it is already create, it simply returns the
+   * created on a previous call. If it is already created, it simply returns the
    * corresponding previewer.
    *
    * @param parent The parent widget for the previewer
