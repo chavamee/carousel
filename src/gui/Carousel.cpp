@@ -19,6 +19,7 @@
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QPropertyAnimation>
 #include <QPushButton>
 #include <QStackedWidget>
 #include <QStyle>
@@ -35,6 +36,7 @@
 #include "../app/command/SoftRemoveFile.hpp"
 
 #include "Carousel.hpp"
+#include "DirectorySelectButton.hpp"
 
 using std::unique_ptr;
 using std::make_unique;
@@ -46,30 +48,44 @@ Carousel::Carousel(QWidget* parent) : QWidget(parent) {
 }
 
 void Carousel::createGrid() {
+  const QString buttonStyle = " QPushButton { \
+                              }";
   m_grid = new QGridLayout;
 
-  auto northButton = new QPushButton;
+  auto northButton = new DirectorySelectButton;
   northButton->setFocusPolicy(Qt::NoFocus);
+  northButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  northButton->setStyleSheet(buttonStyle);
+  northButton->setColor(QColor(73, 73, 73, 255));
   connect(northButton, SIGNAL(clicked()), this, SLOT(northButtonPushed()));
-  m_grid->addWidget(northButton, 0, 1, 1, 1, Qt::AlignCenter);
+  m_grid->addWidget(northButton, 0, 0, 1, -1);
   m_directories[Direction::North] = make_tuple("", northButton);
 
-  auto southButton = new QPushButton;
+  auto southButton = new DirectorySelectButton;
   southButton->setFocusPolicy(Qt::NoFocus);
+  southButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  southButton->setStyleSheet(buttonStyle);
+  southButton->setColor(QColor(73, 73, 73, 255));
   connect(southButton, SIGNAL(clicked()), this, SLOT(southButtonPushed()));
-  m_grid->addWidget(southButton, 2, 1, 1, 1, Qt::AlignCenter);
+  m_grid->addWidget(southButton, 2, 0, 1, -1);
   m_directories[Direction::South] = make_tuple("", southButton);
 
-  auto eastButton = new QPushButton;
+  auto eastButton = new DirectorySelectButton;
   eastButton->setFocusPolicy(Qt::NoFocus);
+  eastButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+  eastButton->setStyleSheet(buttonStyle);
+  eastButton->setColor(QColor(73, 73, 73, 255));
   connect(eastButton, SIGNAL(clicked()), this, SLOT(eastButtonPushed()));
-  m_grid->addWidget(eastButton, 1, 2, 1, 1, Qt::AlignCenter);
+  m_grid->addWidget(eastButton, 1, 2, 1, -1);
   m_directories[Direction::East] = make_tuple("", eastButton);
 
-  auto westButton = new QPushButton;
+  auto westButton = new DirectorySelectButton;
   westButton->setFocusPolicy(Qt::NoFocus);
+  westButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+  westButton->setStyleSheet(buttonStyle);
+  westButton->setColor(QColor(73, 73, 73, 255));
   connect(westButton, SIGNAL(clicked()), this, SLOT(westButtonPushed()));
-  m_grid->addWidget(westButton, 1, 0, 1, 1, Qt::AlignCenter);
+  m_grid->addWidget(westButton, 1, 0, 1, 1);
   m_directories[Direction::West] = make_tuple("", westButton);
 
   m_centralText = new QLabel;
@@ -96,9 +112,15 @@ void Carousel::createGrid() {
   vlayout->addLayout(hlayout);
 
   m_grid->addLayout(vlayout, 1, 1, 1, 1, Qt::AlignCenter);
+
   m_grid->setColumnStretch(0, 1);
+  m_grid->setRowStretch(0, 8);
+
   m_grid->setColumnStretch(1, 0);
+  m_grid->setRowStretch(1, 0);
+
   m_grid->setColumnStretch(2, 1);
+  m_grid->setRowStretch(2, 8);
 
   setLayout(m_grid);
 }
@@ -283,6 +305,18 @@ void Carousel::processDirectionalCommandKey(Direction direction,
   } else if (event->text().at(0).isLower()) {
     command = make_unique<FileCommand<MoveFile>>(currentFile, path);
   }
+
+  DirectorySelectButton* button = std::get<1>(m_directories[direction]);
+  QPropertyAnimation *animation = new QPropertyAnimation(button, "color");
+  animation->setDuration(250);
+  animation->setStartValue(QColor(73, 73, 73, 255));
+  animation->setEndValue(QColor(240, 240, 240, 65));
+  animation->start();
+
+  animation->setDuration(250);
+  animation->setStartValue(QColor(240, 240, 240, 65));
+  animation->setEndValue(QColor(73, 73, 73, 255));
+  animation->start();
 
   if (command != nullptr) {
     try {

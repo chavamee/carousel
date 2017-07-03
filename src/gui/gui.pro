@@ -24,6 +24,7 @@ QT += multimediawidgets \
 CONFIG += c++14
 
 HEADERS += Carousel.hpp \
+  DirectorySelectButton.hpp \
   MainWindow.hpp \
   FilePreview.hpp \
   AudioPreview.hpp \
@@ -35,6 +36,7 @@ HEADERS += Carousel.hpp \
   Previewers.hpp
 
 SOURCES += Carousel.cpp \
+  DirectorySelectButton.cpp \
   MainWindow.cpp \
   AudioPreview.cpp \
   IconPreview.cpp \
