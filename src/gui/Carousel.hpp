@@ -30,6 +30,8 @@
 #include "FilePreview.hpp"
 #include "Previewers.hpp"
 
+class DirectorySelectButton;
+
 class QStackedWidget;
 class QGridLayout;
 class QLineEdit;
@@ -167,7 +169,8 @@ class Carousel : public QWidget {
   QLabel* m_centralText = nullptr;
 
   FilePreview* m_filePreview = nullptr;
-  std::map<Direction, std::tuple<QString, QPushButton*>> m_directories;
+  std::map<Direction, std::tuple<QString, DirectorySelectButton*>>
+      m_directories;
 
   Directory m_directory;
   CommandStack m_commandStack;

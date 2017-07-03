@@ -26,6 +26,8 @@ MainWindow::MainWindow() {
   setUnifiedTitleAndToolBarOnMac(true);
 
   createSplashView();
+
+  setStyleSheet("QMainWindow {background: #424242;}");
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {}
