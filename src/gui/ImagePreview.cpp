@@ -26,7 +26,7 @@ ImagePreview::ImagePreview(QWidget* parent)
 }
 
 void ImagePreview::Show(QFileInfo file) {
+  m_label->clear();
   QPixmap img(file.absoluteFilePath());
   m_label->setPixmap(img.scaled(800, 400));
-  show();
 }

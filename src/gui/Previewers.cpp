@@ -93,10 +93,8 @@ bool Previewers::isVideo(const QMimeType& type) {
 }
 
 bool Previewers::isAudio(const QMimeType& type) {
-  std::array<QString, 2> supported_audio_mime_types = {
-    "audio/mpeg",
-    "audio/x-wav"
-  };
+  std::array<QString, 2> supported_audio_mime_types = {"audio/mpeg",
+                                                       "audio/x-wav"};
 
   for (auto& audioType : supported_audio_mime_types) {
     return type.inherits(audioType);

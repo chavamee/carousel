@@ -265,22 +265,20 @@ void Carousel::workingDirectoryModified(QFileInfo* restoredFile) {
   }
 
   file = m_directory.Current();
-  m_filePreview->hide();
   m_filePreview = m_previewers.GetPreviewForFile(this, file);
   m_filePreview->Show(file);
   m_nameEdit->setText(m_directory.Current().fileName());
 }
 
 void Carousel::fileUpdated(const QFileInfo& newFile) {
-  m_filePreview->hide();
   m_filePreview = m_previewers.GetPreviewForFile(this, newFile);
   if (m_centralStack->indexOf(m_filePreview) == -1) {
     m_centralStack->addWidget(m_filePreview);
   }
 
+  m_filePreview->Show(newFile);
   m_centralStack->setCurrentWidget(m_filePreview);
 
-  m_filePreview->Show(newFile);
   m_nameEdit->setText(m_directory.Current().fileName());
 }
 

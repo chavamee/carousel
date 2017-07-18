@@ -82,7 +82,6 @@ VideoPreview::VideoPreview(QWidget *parent) : FilePreview(parent) {
 
 void VideoPreview::Show(QFileInfo file) {
   m_player->stop();
-  m_player->setMedia(QMediaContent());
 
   m_controls->SetState(QMediaPlayer::StoppedState);
   m_controls->SetMuted(false);
